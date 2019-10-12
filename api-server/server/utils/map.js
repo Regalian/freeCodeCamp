@@ -1,14 +1,14 @@
 import _ from 'lodash';
 import { Observable } from 'rx';
 
-import { unDasherize, nameify } from '../utils';
+import { unDasherize, nameify } from '../../../utils/slugs';
 import {
   addNameIdMap as _addNameIdToMap,
   checkMapData,
   getFirstChallenge as _getFirstChallenge
 } from '../../common/utils/map.js';
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.env.FREECODECAMP_NODE_ENV !== 'production';
 const isBeta = !!process.env.BETA;
 const challengesRegex = /^(bonfire|waypoint|zipline|basejump|checkpoint)/i;
 const addNameIdMap = _.once(_addNameIdToMap);

@@ -21,6 +21,7 @@ module.exports = {
   },
   plugins: [
     'gatsby-plugin-react-helmet',
+    'gatsby-plugin-postcss',
     {
       resolve: 'gatsby-plugin-create-client-paths',
       options: {
@@ -109,25 +110,39 @@ module.exports = {
       }
     },
     {
+      resolve: `gatsby-plugin-advanced-sitemap`,
+      options: {
+        exclude: [
+          `/dev-404-page`,
+          `/404`,
+          `/404.html`,
+          `/offline-plugin-app-shell-fallback`,
+          `/learn`,
+          /(\/)learn(\/)\S*/
+        ],
+        addUncaughtPages: true
+      }
+    },
+    {
       resolve: 'gatsby-plugin-manifest',
       options: {
         name: 'freeCodeCamp',
         /* eslint-disable camelcase */
         short_name: 'fCC',
         start_url: '/',
-        theme_color: '#006400',
+        theme_color: '#0a0a23',
         background_color: '#fff',
         /* eslint-enable camelcase */
         display: 'minimal-ui',
-        icon: 'src/images/square_puck.png'
+        icon: 'src/assets/images/square_puck.png'
       }
     },
     {
       resolve: 'gatsby-plugin-google-fonts',
       options: {
-        fonts: ['Lato:400,400i,500']
+        fonts: ['Lato:300,400,400i,500,700', 'Roboto Mono:400,700']
       }
     },
-    'gatsby-plugin-sitemap'
+    'gatsby-plugin-remove-serviceworker'
   ]
 };

@@ -3,6 +3,7 @@ id: 5a24c314108439a4d4036187
 title: Use a Ternary Expression for Conditional Rendering
 challengeType: 6
 isRequired: false
+forumTopicId: 301414
 ---
 
 ## Description
@@ -73,9 +74,9 @@ class CheckUserAge extends React.Component {
     });
   }
   submit() {
-    this.setState({
-      userAge: this.state.input
-    });
+    this.setState(state => ({
+      userAge: state.input
+    }));
   }
   render() {
     const buttonOne = <button onClick={this.submit}>Submit</button>;
@@ -139,9 +140,9 @@ class CheckUserAge extends React.Component {
     });
   }
   submit() {
-    this.setState({
-      userAge: this.state.input
-    });
+    this.setState(state => ({
+      userAge: state.input
+    }));
   }
   render() {
     const buttonOne = <button onClick={this.submit}>Submit</button>;

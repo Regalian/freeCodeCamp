@@ -3,6 +3,7 @@ id: 587d7b7e367417b2b2512b21
 title: Use Multiple Conditional (Ternary) Operators
 challengeType: 1
 videoUrl: 'https://scrimba.com/c/cyWJBT4'
+forumTopicId: 301179
 ---
 
 ## Description
@@ -46,7 +47,7 @@ function findGreaterOrEqual(a, b) {
 
 ## Instructions
 <section id='instructions'>
-Use multiple <code>conditional operators</code> in the <code>checkSign</code> function to check if a number is positive, negative or zero.
+Use multiple <code>conditional operators</code> in the <code>checkSign</code> function to check if a number is positive, negative or zero. The function should return "positive", "negative" or "zero".
 </section>
 
 ## Tests

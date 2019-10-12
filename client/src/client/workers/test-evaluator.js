@@ -18,7 +18,7 @@ const __utils = (() => {
 
   const oldLog = self.console.log.bind(self.console);
   self.console.log = function proxyConsole(...args) {
-    logs.push(args.map(arg => JSON.stringify(arg)).join(' '));
+    logs.push(args.map(arg => '' + JSON.stringify(arg)).join(' '));
     if (logs.join('\n').length > MAX_LOGS_SIZE) {
       flushLogs();
     }
@@ -31,7 +31,8 @@ const __utils = (() => {
   }
 
   return {
-    postResult
+    postResult,
+    oldLog
   };
 })();
 
@@ -54,7 +55,12 @@ self.onmessage = async e => {
       `);
     } catch (err) {
       if (__userCodeWasExecuted) {
+        // rethrow error, since test failed.
         throw err;
+      } else {
+        // report errors to dev console (not the editor console, since the test
+        // may still pass)
+        __utils.oldLog(err);
       }
       testResult = eval(e.data.testString);
     }

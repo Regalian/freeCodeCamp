@@ -2,11 +2,12 @@
 id: 587d824f367417b2b2512c5b
 title: Run Functional Tests on an API Response using Chai-HTTP IV - PUT method
 challengeType: 2
+forumTopicId: 301591
 ---
 
 ## Description
 <section id='description'>
-As a reminder, this project is being built upon the following starter project on <a href='https://glitch.com/#!/import/github/freeCodeCamp/boilerplate-mochachai/'>Glitch</a>, or cloned from <a href='https://github.com/freeCodeCamp/boilerplate-mochachai/'>GitHub</a>.
+As a reminder, this project is being built upon the following starter project on <a href='https://glitch.com/edit/#!/remix/clone-from-repo?REPO_URL=https://github.com/freeCodeCamp/boilerplate-mochachai/'>Glitch</a>, or cloned from <a href='https://github.com/freeCodeCamp/boilerplate-mochachai/'>GitHub</a>.
 This exercise is similar to the preceding. Look at it for the details.
 
 </section>

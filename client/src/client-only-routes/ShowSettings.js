@@ -16,9 +16,7 @@ import {
 import { submitNewAbout, updateUserFlag, verifyCert } from '../redux/settings';
 import { createFlashMessage } from '../components/Flash/redux';
 
-import Spacer from '../components/helpers/Spacer';
-import Loader from '../components/helpers/Loader';
-import FullWidthRow from '../components/helpers/FullWidthRow';
+import { FullWidthRow, Link, Loader, Spacer } from '../components/helpers';
 import About from '../components/settings/About';
 import Privacy from '../components/settings/Privacy';
 import Email from '../components/settings/Email';
@@ -27,13 +25,13 @@ import Portfolio from '../components/settings/Portfolio';
 import Honesty from '../components/settings/Honesty';
 import Certification from '../components/settings/Certification';
 import DangerZone from '../components/settings/DangerZone';
-import RedirectHome from '../components/RedirectHome';
 
 const propTypes = {
   createFlashMessage: PropTypes.func.isRequired,
   hardGoTo: PropTypes.func.isRequired,
-  isSignedIn: PropTypes.bool,
-  showLoading: PropTypes.bool,
+  isSignedIn: PropTypes.bool.isRequired,
+  navigate: PropTypes.func.isRequired,
+  showLoading: PropTypes.bool.isRequired,
   submitNewAbout: PropTypes.func.isRequired,
   toggleNightMode: PropTypes.func.isRequired,
   updateInternetSettings: PropTypes.func.isRequired,
@@ -105,6 +103,7 @@ const mapDispatchToProps = dispatch =>
     {
       createFlashMessage,
       hardGoTo,
+      navigate: location => dispatch(hardGoTo(location)),
       submitNewAbout,
       toggleNightMode: theme => updateUserFlag({ theme }),
       updateInternetSettings: updateUserFlag,
@@ -121,7 +120,7 @@ const createHandleSignoutClick = hardGoTo => e => {
   return hardGoTo(`${apiLocation}/signout`);
 };
 
-function ShowSettings(props) {
+export function ShowSettings(props) {
   const {
     createFlashMessage,
     hardGoTo,
@@ -157,6 +156,7 @@ function ShowSettings(props) {
       website,
       portfolio
     },
+    navigate,
     showLoading,
     updateQuincyEmail,
     updateInternetSettings,
@@ -170,7 +170,7 @@ function ShowSettings(props) {
   }
 
   if (!showLoading && !isSignedIn) {
-    return <RedirectHome />;
+    return navigate(`${apiLocation}/signin`);
   }
 
   return (
@@ -182,15 +182,12 @@ function ShowSettings(props) {
         <main>
           <Spacer size={2} />
           <FullWidthRow>
-            <Button
-              block={true}
-              bsSize='lg'
-              bsStyle='primary'
-              className='btn-invert'
-              href={`/${username}`}
+            <Link
+              className='btn-invert btn btn-lg btn-primary btn-block'
+              to={`/${username}`}
             >
               Show me my public portfolio
-            </Button>
+            </Link>
             <Button
               block={true}
               bsSize='lg'

@@ -3,6 +3,7 @@ id: 56533eb9ac21ba0edf2244bd
 title: Passing Values to Functions with Arguments
 challengeType: 1
 videoUrl: 'https://scrimba.com/c/cy8rahW'
+forumTopicId: 18254
 ---
 
 ## Description
@@ -38,7 +39,7 @@ tests:
   - text: <code>functionWithArgs(7,9)</code> should output <code>16</code>
     testString: if(typeof functionWithArgs === "function") { capture(); functionWithArgs(7,9); uncapture(); } assert(logOutput == 16);
   - text: Call <code>functionWithArgs</code> with two numbers after you define it.
-    testString: assert(/^\s*functionWithArgs\s*\(\s*\d+\s*,\s*\d+\s*\)\s*;/m.test(code));
+    testString: assert(/^\s*functionWithArgs\s*\(\s*\d+\s*,\s*\d+\s*\)\s*/m.test(code));
 
 ```
 

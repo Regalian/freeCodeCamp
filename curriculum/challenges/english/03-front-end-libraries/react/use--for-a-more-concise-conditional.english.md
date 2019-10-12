@@ -3,6 +3,7 @@ id: 5a24c314108439a4d4036185
 title: Use && for a More Concise Conditional
 challengeType: 6
 isRequired: false
+forumTopicId: 301413
 ---
 
 ## Description
@@ -50,9 +51,9 @@ class MyComponent extends React.Component {
     this.toggleDisplay = this.toggleDisplay.bind(this);
   }
   toggleDisplay() {
-    this.setState({
-      display: !this.state.display
-    });
+    this.setState(state => ({
+      display: !state.display
+    }));
   }
   render() {
     // change code below this line
@@ -94,9 +95,9 @@ class MyComponent extends React.Component {
  this.toggleDisplay = this.toggleDisplay.bind(this);
   }
   toggleDisplay() {
-    this.setState({
-      display: !this.state.display
-    });
+    this.setState(state => ({
+      display: !state.display
+    }));
   }
   render() {
     // change code below this line

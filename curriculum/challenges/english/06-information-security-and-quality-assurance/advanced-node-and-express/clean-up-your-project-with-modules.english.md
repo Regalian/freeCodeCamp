@@ -2,11 +2,12 @@
 id: 589690e6f9fc0f352b528e6e
 title: Clean Up Your Project with Modules
 challengeType: 2
+forumTopicId: 301549
 ---
 
 ## Description
 <section id='description'>
-As a reminder, this project is being built upon the following starter project on <a href='https://glitch.com/#!/import/github/freeCodeCamp/boilerplate-advancednode/'>Glitch</a>, or cloned from <a href='https://github.com/freeCodeCamp/boilerplate-advancednode/'>GitHub</a>.
+As a reminder, this project is being built upon the following starter project on <a href='https://glitch.com/edit/#!/remix/clone-from-repo?REPO_URL=https://github.com/freeCodeCamp/boilerplate-advancednode/'>Glitch</a>, or cloned from <a href='https://github.com/freeCodeCamp/boilerplate-advancednode/'>GitHub</a>.
 Right now everything you have is in your server.js file. This can lead to hard to manage code that isn't very expandable.
 Create 2 new files: Routes.js and Auth.js
 Both should start with the following code:

@@ -3,18 +3,30 @@ import PropTypes from 'prop-types';
 import { Highlight } from 'react-instantsearch-dom';
 import { isEmpty } from 'lodash';
 
-const Suggestion = ({ handleSubmit, hit }) => {
+const Suggestion = ({ hit, handleMouseEnter, handleMouseLeave }) => {
+  const dropdownFooter = hit.objectID.includes('default-hit-');
   return isEmpty(hit) || isEmpty(hit.objectID) ? null : (
     <a
-      className='fcc_suggestion_item'
-      href='/search'
-      onClick={e => handleSubmit(e, hit.query)}
+      className={
+        dropdownFooter
+          ? 'fcc_suggestion_footer fcc_suggestion_item'
+          : 'fcc_suggestion_item'
+      }
+      href={
+        dropdownFooter
+          ? `https://freecodecamp.org/news/search/?query=${encodeURIComponent(
+              hit.query
+            )}`
+          : hit.url
+      }
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <span className='hit-name'>
-        {hit.objectID.includes('default-hit-') ? (
+        {dropdownFooter ? (
           <Highlight attribute='query' hit={hit} tagName='strong' />
         ) : (
-          <Highlight attribute='query' hit={hit} />
+          <Highlight attribute='title' hit={hit} />
         )}
       </span>
     </a>
@@ -22,7 +34,8 @@ const Suggestion = ({ handleSubmit, hit }) => {
 };
 
 Suggestion.propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
+  handleMouseEnter: PropTypes.func.isRequired,
+  handleMouseLeave: PropTypes.func.isRequired,
   hit: PropTypes.object
 };
 
