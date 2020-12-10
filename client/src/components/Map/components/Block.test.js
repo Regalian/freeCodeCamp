@@ -1,6 +1,5 @@
 /* global jest, expect */
 
-import '@testing-library/jest-dom/extend-expect';
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 
@@ -44,6 +43,7 @@ test('<Block expanded snapshot', () => {
 test('<Block />  should handle toggle clicks correctly', async () => {
   const toggleSpy = jest.fn();
   const toggleMapSpy = jest.fn();
+  const executeGA = jest.fn();
 
   const props = {
     blockDashedName: 'block-a',
@@ -51,6 +51,7 @@ test('<Block />  should handle toggle clicks correctly', async () => {
     completedChallenges: mockCompleted,
     intro: mockIntroNodes[0],
     isExpanded: false,
+    executeGA: executeGA,
     toggleBlock: toggleSpy,
     toggleMapModal: toggleMapSpy
   };

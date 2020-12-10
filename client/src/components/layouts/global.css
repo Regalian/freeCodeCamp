@@ -1,5 +1,6 @@
 html {
   font-size: 18px;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
@@ -10,8 +11,9 @@ body {
 
 .btn-cta-big {
   max-height: 100%;
-  font-size: 27px;
+  font-size: 1.5rem;
   white-space: normal;
+  width: 100%;
 }
 
 .default-layout {
@@ -27,21 +29,21 @@ h1 {
   font-weight: 700;
   font-size: 1.5rem;
   font-family: 'Roboto Mono', monospace;
-  margin: 1.2rem 0 1.2rem;
+  margin: 0.6rem 0;
 }
 h2 {
   color: var(--secondary-color);
   font-weight: 700;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-family: 'Roboto Mono', monospace;
-  margin: 1.2rem 0 1.2rem;
+  margin: 0.6rem 0;
 }
 h3 {
   color: var(--secondary-color);
   font-weight: 700;
   font-size: 1.1rem;
   font-family: 'Roboto Mono', monospace;
-  margin: 0 0 1.2rem;
+  margin: 0 0 0.6rem;
 }
 
 h4,
@@ -66,33 +68,28 @@ p {
   overflow-wrap: break-word;
 }
 
-.medium-heading {
-  font-size: 1.5rem !important;
-  font-weight: normal;
-}
-
-.medium-heading.text-center {
-  margin-bottom: 50px;
-}
-
 @media (max-width: 500px) {
   .big-heading {
-    font-size: 1.6rem !important;
-  }
-  .medium-heading {
-    font-size: 1.4rem !important;
+    font-size: 1.5rem !important;
   }
   h1 {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   h2 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
   h3 {
+    font-size: 1.1rem;
+  }
+  .btn-cta,
+  .btn-cta-big {
     font-size: 1rem;
   }
-  .btn-cta {
-    font-size: 1.2rem;
+}
+
+@media (max-width: 1199px) {
+  .btn-cta-big {
+    font-size: 1.3rem;
   }
 }
 
@@ -157,6 +154,7 @@ input[type='submit'],
   color: var(--secondary-color);
   border-radius: 0px;
   text-decoration: none;
+  white-space: pre-line;
 }
 
 button:hover,
@@ -227,7 +225,7 @@ fieldset[disabled] .btn-primary.focus {
 .btn-cta:hover,
 .btn-cta:focus,
 .btn-cta:active:hover {
-  background-color: #fecc4c;
+  background-color: #fecc4c !important;
   border-width: 3px;
   border-color: #f1a02a;
   background-image: none;
@@ -252,6 +250,33 @@ fieldset[disabled] .btn-primary.focus {
   background: var(--tertiary-background);
   text-decoration: none;
   color: inherit;
+}
+
+.link-btn {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  font-size: 1rem;
+  text-align: left;
+}
+
+.link-btn.btn-lg svg {
+  height: 100%;
+  min-height: 20px;
+  min-width: 16px;
+  margin-left: 5px;
+}
+
+.link-btn:hover svg {
+  fill: var(--quaternary-background);
+}
+
+@media (min-width: 700px) {
+  .link-btn {
+    font-size: 1.1rem;
+  }
 }
 
 .button-group .btn:not(:last-child) {
@@ -347,6 +372,28 @@ hr {
   background-color: var(--tertiary-background);
 }
 
+.challenge-instructions table {
+  display: inline-block;
+  overflow: auto;
+}
+
+.challenge-instructions table thead {
+  display: table-header-group;
+  vertical-align: middle;
+  border-color: inherit;
+}
+
+.challenge-instructions table th {
+  font-weight: 700;
+}
+
+.challenge-instructions table th,
+.challenge-instructions table td {
+  padding: 6px 13px;
+  border: 1px solid var(--secondary-color);
+  text-align: center;
+}
+
 .help-block {
   color: var(--quaternary-color);
 }
@@ -389,7 +436,17 @@ pre {
 
 .panel-primary > .panel-heading {
   background-color: transparent;
-  border-color: var(--color-primary);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.solution-viewer,
+.solution-viewer pre {
+  margin-bottom: 0px;
+}
+
+.solution-viewer {
+  border-color: var(--primary-color);
 }
 
 .has-success .help-block,

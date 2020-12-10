@@ -5,11 +5,10 @@ import { createStructuredSelector } from 'reselect';
 import { connect } from 'react-redux';
 import Helmet from 'react-helmet';
 import { graphql } from 'gatsby';
-import { first } from 'lodash';
 import Media from 'react-responsive';
 
 import LearnLayout from '../../../components/layouts/Learn';
-import Editor from './Editor';
+import MultifileEditor from './MultifileEditor';
 import Preview from '../components/Preview';
 import SidePanel from '../components/Side-Panel';
 import Output from '../components/Output';
@@ -34,7 +33,8 @@ import {
   updateChallengeMeta,
   challengeMounted,
   consoleOutputSelector,
-  executeChallenge
+  executeChallenge,
+  cancelTests
 } from '../redux';
 
 import './classic.css';
@@ -54,12 +54,14 @@ const mapDispatchToProps = dispatch =>
       initTests,
       updateChallengeMeta,
       challengeMounted,
-      executeChallenge
+      executeChallenge,
+      cancelTests
     },
     dispatch
   );
 
 const propTypes = {
+  cancelTests: PropTypes.func.isRequired,
   challengeMounted: PropTypes.func.isRequired,
   createFiles: PropTypes.func.isRequired,
   data: PropTypes.shape({
@@ -71,7 +73,7 @@ const propTypes = {
   }),
   initConsole: PropTypes.func.isRequired,
   initTests: PropTypes.func.isRequired,
-  output: PropTypes.string,
+  output: PropTypes.arrayOf(PropTypes.string),
   pageContext: PropTypes.shape({
     challengeMeta: PropTypes.shape({
       id: PropTypes.string,
@@ -127,15 +129,21 @@ class ShowClassic extends Component {
   componentDidUpdate(prevProps) {
     const {
       data: {
-        challengeNode: { title: prevTitle }
+        challengeNode: {
+          title: prevTitle,
+          fields: { tests: prevTests }
+        }
       }
     } = prevProps;
     const {
       data: {
-        challengeNode: { title: currentTitle }
+        challengeNode: {
+          title: currentTitle,
+          fields: { tests: currTests }
+        }
       }
     } = this.props;
-    if (prevTitle !== currentTitle) {
+    if (prevTitle !== currentTitle || prevTests !== currTests) {
       this.initializeComponent(currentTitle);
     }
   }
@@ -151,7 +159,8 @@ class ShowClassic extends Component {
         challengeNode: {
           files,
           fields: { tests },
-          challengeType
+          challengeType,
+          helpCategory
         }
       },
       pageContext: { challengeMeta }
@@ -159,13 +168,19 @@ class ShowClassic extends Component {
     initConsole('');
     createFiles(files);
     initTests(tests);
-    updateChallengeMeta({ ...challengeMeta, title, challengeType });
+    updateChallengeMeta({
+      ...challengeMeta,
+      title,
+      challengeType,
+      helpCategory
+    });
     challengeMounted(challengeMeta.id);
   }
 
   componentWillUnmount() {
-    const { createFiles } = this.props;
+    const { createFiles, cancelTests } = this.props;
     createFiles({});
+    cancelTests();
   }
 
   getChallenge = () => this.props.data.challengeNode;
@@ -179,11 +194,6 @@ class ShowClassic extends Component {
   }
 
   getVideoUrl = () => this.getChallenge().videoUrl;
-
-  getChallengeFile() {
-    const { files } = this.props;
-    return first(Object.keys(files).map(key => files[key]));
-  }
 
   hasPreview() {
     const { challengeType } = this.getChallenge();
@@ -217,15 +227,16 @@ class ShowClassic extends Component {
 
   renderEditor() {
     const { files } = this.props;
-
-    const challengeFile = first(Object.keys(files).map(key => files[key]));
+    const { description } = this.getChallenge();
     return (
-      challengeFile && (
-        <Editor
+      files && (
+        <MultifileEditor
+          challengeFiles={files}
           containerRef={this.containerRef}
-          ref={this.editorRef}
-          {...challengeFile}
-          fileKey={challengeFile.key}
+          description={description}
+          editorRef={this.editorRef}
+          hasEditableBoundries={this.hasEditableBoundries()}
+          resizeProps={this.resizeProps}
         />
       )
     );
@@ -251,6 +262,15 @@ class ShowClassic extends Component {
     );
   }
 
+  hasEditableBoundries() {
+    const { files } = this.props;
+    return Object.values(files).some(
+      file =>
+        file.editableRegionBoundaries &&
+        file.editableRegionBoundaries.length === 2
+    );
+  }
+
   render() {
     const {
       fields: { blockName },
@@ -261,8 +281,10 @@ class ShowClassic extends Component {
       executeChallenge,
       pageContext: {
         challengeMeta: { introPath, nextChallengePath, prevChallengePath }
-      }
+      },
+      files
     } = this.props;
+
     return (
       <Hotkeys
         editorRef={this.editorRef}
@@ -291,8 +313,9 @@ class ShowClassic extends Component {
           </Media>
           <Media minWidth={MAX_MOBILE_WIDTH + 1}>
             <DesktopLayout
-              challengeFile={this.getChallengeFile()}
+              challengeFiles={files}
               editor={this.renderEditor()}
+              hasEditableBoundries={this.hasEditableBoundries()}
               hasPreview={this.hasPreview()}
               instructions={this.renderInstructionsPanel({
                 showToolPanel: true
@@ -320,6 +343,9 @@ export default connect(
   mapDispatchToProps
 )(ShowClassic);
 
+// TODO: handle jsx (not sure why it doesn't get an editableRegion) EDIT:
+// probably because the dummy challenge didn't include it, so Gatsby couldn't
+// infer it.
 export const query = graphql`
   query ClassicChallenge($slug: String!) {
     challengeNode(fields: { slug: { eq: $slug } }) {
@@ -327,6 +353,7 @@ export const query = graphql`
       description
       instructions
       challengeType
+      helpCategory
       videoUrl
       forumTopicId
       fields {
@@ -342,6 +369,15 @@ export const query = graphql`
         src
       }
       files {
+        indexcss {
+          key
+          ext
+          name
+          contents
+          head
+          tail
+          editableRegionBoundaries
+        }
         indexhtml {
           key
           ext
@@ -349,6 +385,7 @@ export const query = graphql`
           contents
           head
           tail
+          editableRegionBoundaries
         }
         indexjs {
           key
@@ -357,6 +394,7 @@ export const query = graphql`
           contents
           head
           tail
+          editableRegionBoundaries
         }
         indexjsx {
           key
@@ -365,6 +403,7 @@ export const query = graphql`
           contents
           head
           tail
+          editableRegionBoundaries
         }
       }
     }

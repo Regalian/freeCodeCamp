@@ -1,4 +1,4 @@
-import { transformers } from '../rechallenge/transformers';
+import { getTransformers } from '../rechallenge/transformers';
 import { cssToHtml, jsToHtml, concatHtml } from '../rechallenge/builders.js';
 import { challengeTypes } from '../../../../utils/challengeTypes';
 import createWorker from './worker-executor';
@@ -48,10 +48,21 @@ const composeFunctions = (...fns) =>
   fns.map(applyFunction).reduce((f, g) => x => f(x).then(g));
 
 function buildSourceMap(files) {
-  return files.reduce((sources, file) => {
-    sources[file.name] = file.source || file.contents;
-    return sources;
-  }, {});
+  // TODO: concatenating the source/contents is a quick hack for multi-file
+  // editing. It is used because all the files (js, html and css) end up with
+  // the same name 'index'. This made the last file the only file to  appear in
+  // sources.
+  // A better solution is to store and handle them separately. Perhaps never
+  // setting the name to 'index'. Use 'contents' instead?
+  // TODO: is file.source ever defined?
+  return files.reduce(
+    (sources, file) => {
+      sources[file.name] += file.source || file.contents;
+      sources.editableContents += file.editableContents || '';
+      return sources;
+    },
+    { index: '', editableContents: '' }
+  );
 }
 
 function checkFilesErrors(files) {
@@ -68,7 +79,8 @@ const buildFunctions = {
   [challengeTypes.html]: buildDOMChallenge,
   [challengeTypes.modern]: buildDOMChallenge,
   [challengeTypes.backend]: buildBackendChallenge,
-  [challengeTypes.backEndProject]: buildBackendChallenge
+  [challengeTypes.backEndProject]: buildBackendChallenge,
+  [challengeTypes.pythonProject]: buildBackendChallenge
 };
 
 export function canBuildChallenge(challengeData) {
@@ -76,11 +88,11 @@ export function canBuildChallenge(challengeData) {
   return buildFunctions.hasOwnProperty(challengeType);
 }
 
-export async function buildChallenge(challengeData) {
+export async function buildChallenge(challengeData, options) {
   const { challengeType } = challengeData;
   let build = buildFunctions[challengeType];
   if (build) {
-    return build(challengeData);
+    return build(challengeData, options);
   }
   throw new Error(`Cannot build challenge of type ${challengeType}`);
 }
@@ -88,7 +100,8 @@ export async function buildChallenge(challengeData) {
 const testRunners = {
   [challengeTypes.js]: getJSTestRunner,
   [challengeTypes.html]: getDOMTestRunner,
-  [challengeTypes.backend]: getDOMTestRunner
+  [challengeTypes.backend]: getDOMTestRunner,
+  [challengeTypes.pythonProject]: getDOMTestRunner
 };
 export function getTestRunner(buildData, { proxyLogger }, document) {
   const { challengeType } = buildData;
@@ -100,7 +113,10 @@ export function getTestRunner(buildData, { proxyLogger }, document) {
 }
 
 function getJSTestRunner({ build, sources }, proxyLogger) {
-  const code = sources && 'index' in sources ? sources['index'] : '';
+  const code = {
+    contents: sources.index,
+    editableContents: sources.editableContents
+  };
 
   const testWorker = createWorker(testEvaluator, { terminateWorker: true });
 
@@ -123,7 +139,7 @@ export function buildDOMChallenge({ files, required = [], template = '' }) {
   const finalRequires = [...globalRequires, ...required, ...frameRunner];
   const loadEnzyme = Object.keys(files).some(key => files[key].ext === 'jsx');
   const toHtml = [jsToHtml, cssToHtml];
-  const pipeLine = composeFunctions(...transformers, ...toHtml);
+  const pipeLine = composeFunctions(...getTransformers(), ...toHtml);
   const finalFiles = Object.keys(files)
     .map(key => files[key])
     .map(pipeLine);
@@ -137,8 +153,9 @@ export function buildDOMChallenge({ files, required = [], template = '' }) {
     }));
 }
 
-export function buildJSChallenge({ files }) {
-  const pipeLine = composeFunctions(...transformers);
+export function buildJSChallenge({ files }, options) {
+  const pipeLine = composeFunctions(...getTransformers(options));
+
   const finalFiles = Object.keys(files)
     .map(key => files[key])
     .map(pipeLine);
@@ -188,4 +205,8 @@ export function isJavaScriptChallenge({ challengeType }) {
     challengeType === challengeTypes.js ||
     challengeType === challengeTypes.bonfire
   );
+}
+
+export function isLoopProtected(challengeMeta) {
+  return challengeMeta.superBlock !== 'Coding Interview Prep';
 }

@@ -1,14 +1,29 @@
 import React, { Component, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import format from 'date-fns/format';
-import { find, reverse, sortBy } from 'lodash';
-import { Button, Modal, Table } from '@freecodecamp/react-bootstrap';
-import { Link, useStaticQuery, graphql } from 'gatsby';
+import { reverse, sortBy } from 'lodash';
+import {
+  Button,
+  Modal,
+  Table,
+  DropdownButton,
+  MenuItem
+} from '@freecodecamp/react-bootstrap';
+import { useStaticQuery, graphql } from 'gatsby';
 
+import './timeline.css';
 import TimelinePagination from './TimelinePagination';
-import { FullWidthRow } from '../../helpers';
+import { FullWidthRow, Link } from '../../helpers';
 import SolutionViewer from '../../settings/SolutionViewer';
-import { challengeTypes } from '../../../../utils/challengeTypes';
+import {
+  getCertIds,
+  getPathFromID,
+  getTitleFromId
+} from '../../../../../utils';
+
+import { maybeUrlRE } from '../../../utils';
+import CertificationIcon from '../../../assets/icons/CertificationIcon';
+
 // Items per page in timeline.
 const ITEMS_PER_PAGE = 15;
 
@@ -60,7 +75,9 @@ class TimelineInner extends Component {
     this.state = {
       solutionToView: null,
       solutionOpen: false,
-      pageNo: 1
+      pageNo: 1,
+      solution: null,
+      files: null
     };
 
     this.closeSolution = this.closeSolution.bind(this);
@@ -70,31 +87,107 @@ class TimelineInner extends Component {
     this.prevPage = this.prevPage.bind(this);
     this.nextPage = this.nextPage.bind(this);
     this.lastPage = this.lastPage.bind(this);
+    this.renderViewButton = this.renderViewButton.bind(this);
+  }
+
+  renderViewButton(id, files, githubLink, solution) {
+    if (files && files.length) {
+      return (
+        <Button
+          block={true}
+          bsStyle='primary'
+          className='btn-invert'
+          id={`btn-for-${id}`}
+          onClick={() => this.viewSolution(id, solution, files)}
+        >
+          Show Code
+        </Button>
+      );
+    } else if (githubLink) {
+      return (
+        <div className='solutions-dropdown'>
+          <DropdownButton
+            block={true}
+            bsStyle='primary'
+            className='btn-invert'
+            id={`dropdown-for-${id}`}
+            title='View'
+          >
+            <MenuItem
+              bsStyle='primary'
+              href={solution}
+              rel='noopener noreferrer'
+              target='_blank'
+            >
+              Front End
+            </MenuItem>
+            <MenuItem
+              bsStyle='primary'
+              href={githubLink}
+              rel='noopener noreferrer'
+              target='_blank'
+            >
+              Back End
+            </MenuItem>
+          </DropdownButton>
+        </div>
+      );
+    } else if (maybeUrlRE.test(solution)) {
+      return (
+        <Button
+          block={true}
+          bsStyle='primary'
+          className='btn-invert'
+          href={solution}
+          id={`btn-for-${id}`}
+          rel='noopener noreferrer'
+          target='_blank'
+        >
+          View
+        </Button>
+      );
+    } else {
+      return null;
+    }
   }
 
   renderCompletion(completed) {
-    const { idToNameMap } = this.props;
-    const { id, completedDate } = completed;
-    const { challengeTitle, challengePath } = idToNameMap.get(id);
+    const { idToNameMap, username } = this.props;
+    const { id, files, githubLink, solution } = completed;
+    const completedDate = new Date(completed.completedDate);
+    const { challengeTitle, challengePath, certPath } = idToNameMap.get(id);
     return (
       <tr className='timeline-row' key={id}>
         <td>
-          <Link to={challengePath}>{challengeTitle}</Link>
+          {certPath ? (
+            <Link
+              className='timeline-cert-link'
+              external={true}
+              to={`certification/${username}/${certPath}`}
+            >
+              {challengeTitle}
+              <CertificationIcon />
+            </Link>
+          ) : (
+            <Link to={challengePath}>{challengeTitle}</Link>
+          )}
         </td>
+        <td>{this.renderViewButton(id, files, githubLink, solution)}</td>
         <td className='text-center'>
-          <time dateTime={format(completedDate, 'YYYY-MM-DDTHH:MM:SSZ')}>
-            {format(completedDate, 'MMMM D, YYYY')}
+          <time dateTime={completedDate.toISOString()}>
+            {format(completedDate, 'MMMM d, y')}
           </time>
         </td>
-        <td />
       </tr>
     );
   }
-  viewSolution(id) {
+  viewSolution(id, solution, files) {
     this.setState(state => ({
       ...state,
       solutionToView: id,
-      solutionOpen: true
+      solutionOpen: true,
+      solution,
+      files
     }));
   }
 
@@ -102,7 +195,9 @@ class TimelineInner extends Component {
     this.setState(state => ({
       ...state,
       solutionToView: null,
-      solutionOpen: false
+      solutionOpen: false,
+      solution: null,
+      files: null
     }));
   }
 
@@ -152,8 +247,8 @@ class TimelineInner extends Component {
             <thead>
               <tr>
                 <th>Challenge</th>
+                <th>Solution</th>
                 <th className='text-center'>Completed</th>
-                <th />
               </tr>
             </thead>
             <tbody>
@@ -178,10 +273,8 @@ class TimelineInner extends Component {
             </Modal.Header>
             <Modal.Body>
               <SolutionViewer
-                solution={find(
-                  completedMap,
-                  ({ id: completedId }) => completedId === id
-                )}
+                files={this.state.files}
+                solution={this.state.solution}
               />
             </Modal.Body>
             <Modal.Footer>
@@ -225,6 +318,12 @@ function useIdToNameMap() {
     }
   `);
   const idToNameMap = new Map();
+  for (let id of getCertIds()) {
+    idToNameMap.set(id, {
+      challengeTitle: `${getTitleFromId(id)} Certification`,
+      certPath: getPathFromID(id)
+    });
+  }
   edges.forEach(({ node: { id, title, fields: { slug } } }) => {
     idToNameMap.set(id, { challengeTitle: title, challengePath: slug });
   });
@@ -238,10 +337,7 @@ const Timeline = props => {
   const { sortedTimeline, totalPages } = useMemo(() => {
     const sortedTimeline = reverse(
       sortBy(completedMap, ['completedDate']).filter(challenge => {
-        return (
-          challenge.challengeType !== challengeTypes.step &&
-          idToNameMap.has(challenge.id)
-        );
+        return idToNameMap.has(challenge.id);
       })
     );
     const totalPages = Math.ceil(sortedTimeline.length / ITEMS_PER_PAGE);

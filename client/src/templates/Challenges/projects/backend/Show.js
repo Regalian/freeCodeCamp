@@ -13,10 +13,8 @@ import {
   consoleOutputSelector,
   initConsole,
   initTests,
-  updateBackendFormValues,
   updateChallengeMeta,
-  updateProjectFormValues,
-  backendNS
+  updateSolutionFormValues
 } from '../../redux';
 import { getGuideUrl } from '../../utils';
 
@@ -28,14 +26,11 @@ import Output from '../../components/Output';
 import CompletionModal from '../../components/CompletionModal';
 import HelpModal from '../../components/HelpModal';
 import ProjectToolPanel from '../Tool-Panel';
-import ProjectForm from '../ProjectForm';
-import { Form } from '../../../../components/formHelpers';
+import SolutionForm from '../SolutionForm';
 import Spacer from '../../../../components/helpers/Spacer';
 import { ChallengeNode } from '../../../../redux/propTypes';
 import { isSignedInSelector } from '../../../../redux';
 import Hotkeys from '../../components/Hotkeys';
-
-import { backend } from '../../../../../utils/challengeTypes';
 
 import '../../components/test-frame.css';
 
@@ -51,15 +46,14 @@ const propTypes = {
   initConsole: PropTypes.func.isRequired,
   initTests: PropTypes.func.isRequired,
   isSignedIn: PropTypes.bool,
-  output: PropTypes.string,
+  output: PropTypes.arrayOf(PropTypes.string),
   pageContext: PropTypes.shape({
     challengeMeta: PropTypes.object
   }),
   tests: PropTypes.array,
   title: PropTypes.string,
-  updateBackendFormValues: PropTypes.func.isRequired,
   updateChallengeMeta: PropTypes.func.isRequired,
-  updateProjectFormValues: PropTypes.func.isRequired
+  updateSolutionFormValues: PropTypes.func.isRequired
 };
 
 const mapStateToProps = createSelector(
@@ -78,20 +72,8 @@ const mapDispatchToActions = {
   executeChallenge,
   initConsole,
   initTests,
-  updateBackendFormValues,
   updateChallengeMeta,
-  updateProjectFormValues
-};
-
-const formFields = ['solution'];
-const options = {
-  required: ['solution'],
-  types: {
-    solution: 'url'
-  },
-  placeholders: {
-    solution: 'Link to solution, ex: https://codepen.io/camperbot/full/oNvPqqo'
-  }
+  updateSolutionFormValues
 };
 
 export class BackEnd extends Component {
@@ -99,7 +81,6 @@ export class BackEnd extends Component {
     super(props);
     this.state = {};
     this.updateDimensions = this.updateDimensions.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentDidMount() {
@@ -119,16 +100,22 @@ export class BackEnd extends Component {
   componentDidUpdate(prevProps) {
     const {
       data: {
-        challengeNode: { title: prevTitle }
+        challengeNode: {
+          title: prevTitle,
+          fields: { tests: prevTests }
+        }
       }
     } = prevProps;
     const {
       data: {
-        challengeNode: { title: currentTitle }
+        challengeNode: {
+          title: currentTitle,
+          fields: { tests: currTests }
+        }
       }
     } = this.props;
-    if (prevTitle !== currentTitle) {
-      this.initializeComponent();
+    if (prevTitle !== currentTitle || prevTests !== currTests) {
+      this.initializeComponent(currentTitle);
     }
   }
 
@@ -141,21 +128,22 @@ export class BackEnd extends Component {
       data: {
         challengeNode: {
           fields: { tests },
-          challengeType
+          title,
+          challengeType,
+          helpCategory
         }
       },
       pageContext: { challengeMeta }
     } = this.props;
-    initConsole('');
+    initConsole();
     initTests(tests);
-    updateChallengeMeta({ ...challengeMeta, challengeType });
+    updateChallengeMeta({
+      ...challengeMeta,
+      title,
+      challengeType,
+      helpCategory
+    });
     challengeMounted(challengeMeta.id);
-  }
-
-  handleSubmit(values) {
-    const { updateBackendFormValues, executeChallenge } = this.props;
-    updateBackendFormValues(values);
-    executeChallenge();
   }
 
   render() {
@@ -175,14 +163,10 @@ export class BackEnd extends Component {
         challengeMeta: { introPath, nextChallengePath, prevChallengePath }
       },
       tests,
-      isSignedIn,
       executeChallenge,
-      updateProjectFormValues
+      updateSolutionFormValues
     } = this.props;
 
-    const buttonCopy = isSignedIn
-      ? 'Submit and go to my next challenge'
-      : "I've completed this challenge";
     const blockNameTitle = `${blockName} - ${title}`;
 
     return (
@@ -203,21 +187,11 @@ export class BackEnd extends Component {
                   description={description}
                   instructions={instructions}
                 />
-                {challengeType === backend ? (
-                  <Form
-                    buttonText={`${buttonCopy}`}
-                    formFields={formFields}
-                    id={backendNS}
-                    options={options}
-                    submit={this.handleSubmit}
-                  />
-                ) : (
-                  <ProjectForm
-                    isFrontEnd={false}
-                    onSubmit={executeChallenge}
-                    updateProjectForm={updateProjectFormValues}
-                  />
-                )}
+                <SolutionForm
+                  challengeType={challengeType}
+                  onSubmit={executeChallenge}
+                  updateSolutionForm={updateSolutionFormValues}
+                />
                 <ProjectToolPanel
                   guideUrl={getGuideUrl({ forumTopicId, title })}
                 />
@@ -262,6 +236,7 @@ export const query = graphql`
       description
       instructions
       challengeType
+      helpCategory
       fields {
         blockName
         slug
